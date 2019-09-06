@@ -6,14 +6,15 @@ use std::time::Duration;
 mod threadpool;
 const LOCAL: &str = "127.0.0.1:7878";
 fn main() {
+    let threads = threadpool::Threadpool::new(4);
     let listener = TcpListener::bind(LOCAL)
     .expect("Could not bind to LOCAL");
     for stream in listener.incoming(){
         let stream = stream.unwrap();
-        handle_connection(&stream);
+        threads.execute(|| {handle_connection(stream)});
     }   
 }
-fn handle_connection(mut stream: &TcpStream) {
+fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0;512];
     stream.read(&mut buffer).unwrap();
     let get = b"GET / HTTP/1.1\r\n";
